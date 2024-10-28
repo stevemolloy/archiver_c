@@ -92,21 +92,23 @@ int main(int argc, char **argv) {
 
   for (size_t i=0; i<data_set_array.data[0].data_array.length; i++) {
     DataSet ds = data_set_array.data[0];
+    DynTimeArray t = ds.time_array;
+    DynDoubleArray d = ds.data_array;
     char time_str[30];
     memset(time_str, 0, 30);
-    strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S", &ds.time_array.data[i].time_struct);
-    time_str[19] = '.';
-    sprintf(&(time_str[20]), "%d", ds.time_array.data[i].micros);
-    printf("%s, %0.11f\n", time_str, ds.data_array.data[i]);
+    strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[i].time_struct);
+    sprintf(&(time_str[20]), "%d", t.data[i].micros);
+    printf("%s, %0.11f\n", time_str, d.data[i]);
   }
 
   SDM_ARRAY_FREE(data_set_array.data[0].data_array);
   SDM_ARRAY_FREE(data_set_array.data[0].time_array);
+  SDM_ARRAY_FREE(data_set_array);
 
 defer:
-  if (conn_str) free(conn_str);
+  if (conn_str) FREE(conn_str);
   if (conn)     PQfinish(conn);
-  if (attrs)    free(attrs);
+  if (attrs)    FREE(attrs);
   return result;
 }
 
