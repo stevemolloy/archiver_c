@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define FREE(ptr) do { free(ptr); ptr = NULL; } while (0)
+
 #define defered_return(val) \
   do { result = (val); goto defer; } while (0)
 
@@ -59,7 +61,7 @@
   } while (0);
 
 #define SDM_ARRAY_FREE(da) do {                                \
-    free((da).data);                                           \
+    FREE((da).data);                                           \
     (da).length = 0;                                           \
     (da).capacity = 0;                                         \
   } while (0);
