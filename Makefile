@@ -1,6 +1,7 @@
 CC=clang
 LIBPQ = thirdparty/postgresql-17.0/src/interfaces/libpq
-CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb -I./$(LIBPQ)
+CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb
+CINCLUDES = -I./$(LIBPQ)
 CLIBS = -L./$(LIBPQ) -lpq
 
 SRC = src
@@ -16,7 +17,7 @@ all: $(BIN)
 
 $(BIN): $(OBJS)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(CINCLUDES) $^ -o $@ $(CLIBS)
+	$(CC) $(CFLAGS) $^ -o $@ $(CLIBS)
 
 $(OBJ)/%.o: $(SRC)/%.c
 	@mkdir -p $(@D)
