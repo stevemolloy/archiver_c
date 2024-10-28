@@ -10,6 +10,8 @@
 #include "libpq-fe.h"
 #include "sdm_lib.h"
 
+#define MAX_ARRAY_LENGTH (1024*1024*1024 / 8)
+
 #define defered_return(val) \
   do { result = (val); goto defer; } while (0)
 
@@ -88,6 +90,11 @@ int get_single_attr_data(PGconn *conn, DynDoubleArray *data_arr, DynTimeArray *t
   printf("Each hit has %d fields\n", nFields);
 
   size_t num_data_pts = (size_t)PQntuples(res);
+  if (num_data_pts > MAX_ARRAY_LENGTH) {
+    fprintf(stderr, "DB returned %zu points, which exceeds the maximum of %d\n",
+            num_data_pts, MAX_ARRAY_LENGTH);
+    exit(1);
+  }
   SDM_ENSURE_ARRAY_MIN_CAP(*data_arr, num_data_pts + 1);
   SDM_ENSURE_ARRAY_MIN_CAP(*time_arr, num_data_pts + 1);
 
