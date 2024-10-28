@@ -67,7 +67,7 @@ void SDM_sv_trim(SDM_StringView *SV) {
 }
 
 char *SDM_shift_args(int *argc, char ***argv) {
-  if (*argc <= 0) return NULL;
+  if (*argc < 0) return NULL;
   (*argc)--;
   char **ret = *argv;
   (*argv)++;

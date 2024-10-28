@@ -6,26 +6,31 @@
 #include <stdint.h>
 #include <string.h>
 
-#define SDM_ENSURE_ARRAY_CAP(da, cap) do {                     \
-    (da).capacity = cap;                                       \
-    (da).data = realloc((da).data,                             \
-        (da).capacity * sizeof((da).data[0]));                 \
-    if ((da).data == NULL) {                                   \
-      fprintf(stderr, "ERR: Couldn't alloc memory.\n");        \
-      exit(1);                                                 \
-    }                                                          \
+#define defered_return(val) \
+  do { result = (val); goto defer; } while (0)
+
+#define SDM_ENSURE_ARRAY_CAP(da, cap) do {                      \
+    (da).capacity = cap;                                        \
+    (da).data = realloc((da).data,                              \
+        (da).capacity * sizeof((da).data[0]));                  \
+    memset((da).data, 0, (da).capacity * sizeof((da).data[0])); \
+    if ((da).data == NULL) {                                    \
+      fprintf(stderr, "ERR: Couldn't alloc memory.\n");         \
+      exit(1);                                                  \
+    }                                                           \
   } while (0)
 
-#define SDM_ENSURE_ARRAY_MIN_CAP(da, cap) do {                 \
-    if ((da).capacity < cap) {                                 \
-      (da).capacity = cap;                                     \
-      (da).data = realloc((da).data,                           \
-          (da).capacity * sizeof((da).data[0]));               \
-      if ((da).data == NULL) {                                 \
-        fprintf(stderr, "ERR: Couldn't alloc memory. \n");     \
-        exit(1);                                               \
-      }                                                        \
-    }                                                          \
+#define SDM_ENSURE_ARRAY_MIN_CAP(da, cap) do {                    \
+    if ((da).capacity < cap) {                                    \
+      (da).capacity = cap;                                        \
+      (da).data = realloc((da).data,                              \
+          (da).capacity * sizeof((da).data[0]));                  \
+      memset((da).data, 0, (da).capacity * sizeof((da).data[0])); \
+      if ((da).data == NULL) {                                    \
+        fprintf(stderr, "ERR: Couldn't alloc memory. \n");        \
+        exit(1);                                                  \
+      }                                                           \
+    }                                                             \
   } while (0)
 
 #define DEFAULT_CAPACITY 128
@@ -44,6 +49,7 @@
       (da).capacity *= 2;                                         \
       (da).data = realloc((da).data,                              \
            (da).capacity * sizeof((da).data[0]));                 \
+      memset((da).data, 0, (da).capacity * sizeof((da).data[0])); \
       if ((da).data == NULL) {                                    \
         fprintf(stderr, "ERR: Couldn't alloc memory.\n");         \
         exit(1);                                                  \
