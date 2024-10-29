@@ -90,15 +90,20 @@ int main(int argc, char **argv) {
     get_single_attr_data(conn, attrs[attr_num], &data_set_array.data[attr_num], start_tm, stop_tm);
   }
 
-  for (size_t i=0; i<data_set_array.data[0].data_array.length; i++) {
-    DataSet ds = data_set_array.data[0];
-    DynTimeArray t = ds.time_array;
-    DynDoubleArray d = ds.data_array;
-    char time_str[30];
-    memset(time_str, 0, 30);
-    strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[i].time_struct);
-    sprintf(&(time_str[20]), "%d", t.data[i].micros);
-    printf("%s, %0.11f\n", time_str, d.data[i]);
+  for (size_t attr_num=0; attr_num<(size_t)num_hits; attr_num++) {
+    DataSet ds = data_set_array.data[attr_num];
+    fprintf(stdout, "\"# DATASET= %s\"\n", attrs[attr_num].name);
+    fprintf(stdout, "\"# SNAPSHOT_TIME= \"\n");
+    for (size_t data_pt=0; data_pt < ds.data_array.length; data_pt++) {
+      DynTimeArray t = ds.time_array;
+      DynDoubleArray d = ds.data_array;
+      char time_str[30];
+      memset(time_str, 0, 30);
+      strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[data_pt].time_struct);
+      sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
+      fprintf(stdout, "%s, %0.11f\n", time_str, d.data[data_pt]);
+    }
+    fprintf(stdout, "\n");
   }
 
   SDM_ARRAY_FREE(data_set_array.data[0].data_array);
