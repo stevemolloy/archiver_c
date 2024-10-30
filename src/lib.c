@@ -105,7 +105,7 @@ int get_single_attr_data(
     }
     printf("");
 
-    mktime(&time_struct);
+    // mktime(&time_struct);
     time_struct.tm_hour += 1;
     mktime(&time_struct);
 
