@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,50 +12,54 @@
 #include "lib.h"
 
 void usage(char *program_name) {
-  fprintf(stderr, "%s --start start_time --end end_time signal\n", program_name);
+  fprintf(stderr, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f filename] <signal>\n", program_name);
   return;
 }
 
+typedef struct {
+  char *start_str;
+  char *stop_str;
+  bool save_to_file;
+  char *filename_arg;
+  char *search_str;
+} InputArgs;
+
 int main(int argc, char **argv) {
+  int result = 0;
+  ArchiverAttr *attrs = NULL;
+  PGconn *conn = NULL;
+  char *conn_str = NULL;
+  PGresult *res = NULL;
+
   char *program_name = SDM_shift_args(&argc, &argv);
+  FILE *stream = NULL;
+  char *filename = NULL;
 
-  if (argc < 5) {
-    fprintf(stderr, "[ERROR] Not enough arguments\n\n");
-    fprintf(stderr, "Usage:\n");
-    usage(program_name);
-    fprintf(stderr, "\n");
-    return 1;
-  }
-
-  const char *search_str, *start_str, *stop_str, *file_name;
-  bool save_to_file = false;
+  InputArgs input_args = {0};
 
   while (argc > 0) {
     char *arg_str = SDM_shift_args(&argc, &argv);
 
-    if (strcmp(arg_str, "--start") == 0) {
-      start_str = SDM_shift_args(&argc, &argv);
-    } else if (strcmp(arg_str, "--end") == 0) {
-      stop_str  = SDM_shift_args(&argc, &argv);
-    } else if (strcmp(arg_str, "--file") == 0) {
-      save_to_file = true;
-      file_name = SDM_shift_args(&argc, &argv);
+    if (strcmp(arg_str, "--help") == 0) {
+      usage(program_name);
+      defered_return(0);
+    } else if ((strcmp(arg_str, "--start") == 0) || (strcmp(arg_str, "-s") == 0)) {
+      input_args.start_str = SDM_shift_args(&argc, &argv);
+    } else if ((strcmp(arg_str, "--end") == 0) || (strcmp(arg_str, "-e") == 0)) {
+      input_args.stop_str  = SDM_shift_args(&argc, &argv);
+    } else if ((strcmp(arg_str, "--file") == 0) || (strcmp(arg_str, "-f") == 0)) {
+      input_args.save_to_file = true;
+      input_args.filename_arg = SDM_shift_args(&argc, &argv);
     } else {
-      search_str = arg_str;
+      input_args.search_str = arg_str;
     }
   }
 
   struct tm start_tm = {0}, stop_tm = {0};
-  strptime(start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
+  strptime(input_args.start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
   mktime(&start_tm);
-  strptime(stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
+  strptime(input_args.stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
   mktime(&stop_tm);
-
-  int result = 0;
-  char *conn_str = NULL;
-  PGconn *conn = NULL;
-  PGresult *res = NULL;
-  ArchiverAttr *attrs = NULL;
 
   const char *pass_env_str = "ARCHIVER_PASS";
 
@@ -80,7 +85,7 @@ int main(int argc, char **argv) {
   }
 
   attrs = NULL;
-  int num_matching_attrs = get_ids_and_tables(conn, search_str, &attrs);
+  int num_matching_attrs = get_ids_and_tables(conn, input_args.search_str, &attrs);
   if (num_matching_attrs <= 0) {
     fprintf(stderr, "Search string not found in DB\n");
     defered_return(1);
@@ -95,13 +100,18 @@ int main(int argc, char **argv) {
   }
 
   for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
-    FILE *stream = NULL;
-    char *filename = NULL;
-
-    if (save_to_file) {
-      filename = malloc((strlen(file_name) + 32) * sizeof(char));
-      sprintf(filename, "%s%0.4zu.csv", file_name, attr_num+1);
+    if (input_args.save_to_file) {
+      filename = malloc((strlen(input_args.filename_arg) + 32) * sizeof(char));
+      if (filename == NULL) {
+        fprintf(stderr, "Could not allocate memory.\n");
+        defered_return(1);
+      }
+      sprintf(filename, "%s%0.4zu.csv", input_args.filename_arg, attr_num+1);
       stream = fopen(filename, "w");
+      if (stream == NULL) {
+        fprintf(stderr, "Could not open %s: %s\n", filename, strerror(errno));
+        defered_return(1);
+      }
     } else {
       stream = stdout;
     }
@@ -120,9 +130,9 @@ int main(int argc, char **argv) {
     }
     fprintf(stream, "\n");
 
-    if (save_to_file) {
+    if (input_args.save_to_file) {
       fclose(stream);
-      free(filename);
+      FREE(filename);
     }
   }
 
@@ -134,6 +144,7 @@ defer:
   if (conn_str) FREE(conn_str);
   if (conn)     PQfinish(conn);
   if (attrs)    FREE(attrs);
+  if (filename) FREE(filename);
   return result;
 }
 
