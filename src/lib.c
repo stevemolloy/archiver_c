@@ -55,8 +55,17 @@ int get_single_attr_data(
   memset(start_str, 0, sizeof(start_str)/sizeof(char));
   memset(stop_str, 0, sizeof(stop_str)/sizeof(char));
 
-  strftime(start_str, sizeof(start_str)/sizeof(char), "%Y-%m-%d %H:%M:%S", &start);
-  strftime(stop_str, sizeof(stop_str)/sizeof(char), "%Y-%m-%d %H:%M:%S", &stop);
+  if (start.tm_isdst == 1) {
+    start.tm_hour -= 1;
+    mktime(&start);
+  }
+  if (stop.tm_isdst == 1) {
+    stop.tm_hour -= 1;
+    mktime(&stop);
+  }
+
+  strftime(start_str, sizeof(start_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &start);
+  strftime(stop_str, sizeof(stop_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &stop);
 
   snprintf(query_str, sizeof(query_str)/sizeof(char), 
           "SELECT * FROM %s WHERE att_conf_id = %s AND "
@@ -96,7 +105,8 @@ int get_single_attr_data(
     }
     printf("");
 
-    // time_struct.tm_hour += 1;
+    mktime(&time_struct);
+    time_struct.tm_hour += 1;
     mktime(&time_struct);
 
     SDM_ARRAY_PUSH(dataset->time_array, ((AccurateTime){.time_struct=time_struct, .micros=micros}));
