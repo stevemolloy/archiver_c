@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
   }
 
   attrs = NULL;
-  int num_hits = get_ids_and_tables(conn, search_str, &attrs);
-  if (num_hits <= 0) {
+  int num_matching_attrs = get_ids_and_tables(conn, search_str, &attrs);
+  if (num_matching_attrs <= 0) {
     fprintf(stderr, "Search string not found in DB\n");
     defered_return(1);
   }
@@ -89,12 +89,12 @@ int main(int argc, char **argv) {
   PQclear(res);
 
   DynDataSetArray data_set_array = {0};
-  SDM_ENSURE_ARRAY_MIN_CAP(data_set_array, (size_t)num_hits);
-  for (size_t attr_num=0; attr_num<(size_t)num_hits; attr_num++) {
+  SDM_ENSURE_ARRAY_MIN_CAP(data_set_array, (size_t)num_matching_attrs);
+  for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
     get_single_attr_data(conn, attrs[attr_num], &data_set_array.data[attr_num], start_tm, stop_tm);
   }
 
-  for (size_t attr_num=0; attr_num<(size_t)num_hits; attr_num++) {
+  for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
     FILE *stream = NULL;
 
     if (save_to_file) {
