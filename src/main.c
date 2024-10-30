@@ -19,10 +19,18 @@ void usage(char *program_name) {
 typedef struct {
   char *start_str;
   char *stop_str;
+  char *search_str;
   bool save_to_file;
   char *filename_arg;
-  char *search_str;
 } InputArgs;
+
+bool check_input_args(InputArgs inargs) {
+  if (inargs.start_str==NULL) return false;
+  if (inargs.stop_str==NULL) return false;
+  if (inargs.search_str==NULL) return false;
+  if (inargs.save_to_file && (inargs.filename_arg==NULL)) return false;
+  return true;
+}
 
 int main(int argc, char **argv) {
   int result = 0;
@@ -53,6 +61,12 @@ int main(int argc, char **argv) {
     } else {
       input_args.search_str = arg_str;
     }
+  }
+
+  if (!check_input_args(input_args)) {
+    fprintf(stderr, "Incorrect input arguments\n");
+    usage(program_name);
+    defered_return(1);
   }
 
   struct tm start_tm = {0}, stop_tm = {0};
