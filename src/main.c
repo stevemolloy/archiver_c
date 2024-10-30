@@ -96,9 +96,12 @@ int main(int argc, char **argv) {
 
   for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
     FILE *stream = NULL;
+    char *filename = NULL;
 
     if (save_to_file) {
-      stream = stdout;
+      filename = malloc((strlen(file_name) + 32) * sizeof(char));
+      sprintf(filename, "%s%0.4zu.csv", file_name, attr_num+1);
+      stream = fopen(filename, "w");
     } else {
       stream = stdout;
     }
@@ -116,6 +119,11 @@ int main(int argc, char **argv) {
       fprintf(stream, "%s, %0.11f\n", time_str, d.data[data_pt]);
     }
     fprintf(stream, "\n");
+
+    if (save_to_file) {
+      fclose(stream);
+      free(filename);
+    }
   }
 
   SDM_ARRAY_FREE(data_set_array.data[0].data_array);
