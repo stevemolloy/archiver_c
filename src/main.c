@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  const char *search_str, *start_str, *stop_str;
+  const char *search_str, *start_str, *stop_str, *file_name;
+  bool save_to_file = false;
 
   while (argc > 0) {
     char *arg_str = SDM_shift_args(&argc, &argv);
@@ -35,6 +36,9 @@ int main(int argc, char **argv) {
       start_str = SDM_shift_args(&argc, &argv);
     } else if (strcmp(arg_str, "--end") == 0) {
       stop_str  = SDM_shift_args(&argc, &argv);
+    } else if (strcmp(arg_str, "--file") == 0) {
+      save_to_file = true;
+      file_name = SDM_shift_args(&argc, &argv);
     } else {
       search_str = arg_str;
     }
@@ -91,9 +95,17 @@ int main(int argc, char **argv) {
   }
 
   for (size_t attr_num=0; attr_num<(size_t)num_hits; attr_num++) {
+    FILE *stream = NULL;
+
+    if (save_to_file) {
+      stream = stdout;
+    } else {
+      stream = stdout;
+    }
+
     DataSet ds = data_set_array.data[attr_num];
-    fprintf(stdout, "\"# DATASET= %s\"\n", attrs[attr_num].name);
-    fprintf(stdout, "\"# SNAPSHOT_TIME= \"\n");
+    fprintf(stream, "\"# DATASET= %s\"\n", attrs[attr_num].name);
+    fprintf(stream, "\"# SNAPSHOT_TIME= \"\n");
     for (size_t data_pt=0; data_pt < ds.data_array.length; data_pt++) {
       DynTimeArray t = ds.time_array;
       DynDoubleArray d = ds.data_array;
@@ -101,9 +113,9 @@ int main(int argc, char **argv) {
       memset(time_str, 0, 30);
       strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[data_pt].time_struct);
       sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
-      fprintf(stdout, "%s, %0.11f\n", time_str, d.data[data_pt]);
+      fprintf(stream, "%s, %0.11f\n", time_str, d.data[data_pt]);
     }
-    fprintf(stdout, "\n");
+    fprintf(stream, "\n");
   }
 
   SDM_ARRAY_FREE(data_set_array.data[0].data_array);
