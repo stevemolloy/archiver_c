@@ -4,7 +4,7 @@
 
 You will need a working postgresql installation.  Either use your OS's usual package installation method, or grab it [from here](https://www.postgresql.org/download/),
 
-Set the ´ARCHIVER_PASS´ environment variable to the correct value (speak to me, or your nearest DB admin).
+Set the `ARCHIVER_PASS` environment variable to the correct value (speak to me, or your nearest DB admin).
 
 Finally, call the executable.
 
