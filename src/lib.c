@@ -33,9 +33,9 @@ int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttr **a
   memset(*attrs, 0, num_hits * sizeof(ArchiverAttr));
 
   for (int hit=0; hit<num_hits; hit++) {
-    strncpy((*attrs)[hit].id,    PQgetvalue(res, hit, 0), sizeof(attrs[hit]->id)/sizeof(char));
-    strncpy((*attrs)[hit].name,  PQgetvalue(res, hit, 1), sizeof(attrs[hit]->name)/sizeof(char));
-    strncpy((*attrs)[hit].table, PQgetvalue(res, hit, 2), sizeof(attrs[hit]->table)/sizeof(char));
+    strncpy((*attrs)[hit].id,    PQgetvalue(res, hit, 0), sizeof(attrs[hit]->id)/sizeof(char) - 1);
+    strncpy((*attrs)[hit].name,  PQgetvalue(res, hit, 1), sizeof(attrs[hit]->name)/sizeof(char) - 1);
+    strncpy((*attrs)[hit].table, PQgetvalue(res, hit, 2), sizeof(attrs[hit]->table)/sizeof(char) - 1);
   }
 
   PQclear(res);
@@ -103,7 +103,6 @@ int get_single_attr_data(
         time_str++;
       }
     }
-    printf("");
 
     // mktime(&time_struct);
     time_struct.tm_hour += 1;

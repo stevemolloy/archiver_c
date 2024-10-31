@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Could not allocate memory.\n");
         defered_return(1);
       }
-      sprintf(filename, "%s%0.4zu.csv", input_args.filename_arg, attr_num+1);
+      sprintf(filename, "%s%04zu.csv", input_args.filename_arg, attr_num+1);
       stream = fopen(filename, "w");
       if (stream == NULL) {
         fprintf(stderr, "Could not open %s: %s\n", filename, strerror(errno));
