@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 700
+#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,7 +110,19 @@ int get_single_attr_data(
     mktime(&time_struct);
 
     SDM_ARRAY_PUSH(dataset->time_array, ((AccurateTime){.time_struct=time_struct, .micros=micros}));
-    SDM_ARRAY_PUSH(dataset->data_array, atof(PQgetvalue(res, i, 2)));
+
+    char *db_val_str = PQgetvalue(res, i, 2);
+    if (strcmp(attr.table, "att_scalar_devboolean")==0) {
+      if (strcmp(db_val_str, "t")==0) {
+        SDM_ARRAY_PUSH(dataset->data_array, 1.0);
+      } else if (strcmp(db_val_str, "f")==0) {
+        SDM_ARRAY_PUSH(dataset->data_array, 0.0);
+      } else {
+        assert(0 && "unreachable code was reached");
+      }
+    } else {
+      SDM_ARRAY_PUSH(dataset->data_array, atof(db_val_str));
+    }
   }
 
   PQclear(res);
