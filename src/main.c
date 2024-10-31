@@ -12,7 +12,7 @@
 #include "lib.h"
 
 void usage(char *program_name) {
-  fprintf(stderr, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f filename] <signal>\n", program_name);
+  fprintf(stderr, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f <filename>] <signal>\n", program_name);
   return;
 }
 
