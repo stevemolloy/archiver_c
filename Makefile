@@ -1,4 +1,4 @@
-CC=clang
+CC=gcc
 CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb
 CINCLUDES = -I`pg_config --includedir`
 CLIBS = -L`pg_config --libdir` -lpq
