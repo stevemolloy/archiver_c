@@ -1,3 +1,5 @@
 bin
 objs
 test*csv
+.cache*
+compile_commands.json
