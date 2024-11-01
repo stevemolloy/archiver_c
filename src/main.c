@@ -70,9 +70,27 @@ int main(int argc, char **argv) {
   }
 
   struct tm start_tm = {0}, stop_tm = {0};
-  strptime(input_args.start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
+  // The following is used instead of strptime since that does not exist on Windows
+  int year, month, day, hour, minute, second;
+  sscanf(input_args.start_str, "%d-%d-%dT%d:%d:%d",
+         &year, &month, &day, &hour, &minute, &second);
+  start_tm.tm_year = year - 1900;
+  start_tm.tm_mon = month - 1;
+  start_tm.tm_mday = day;
+  start_tm.tm_hour = hour;
+  start_tm.tm_min = minute;
+  start_tm.tm_sec = second;
+  // strptime(input_args.start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
   mktime(&start_tm);
-  strptime(input_args.stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
+  sscanf(input_args.stop_str, "%d-%d-%dT%d:%d:%d",
+         &year, &month, &day, &hour, &minute, &second);
+  stop_tm.tm_year = year - 1900;
+  stop_tm.tm_mon = month - 1;
+  stop_tm.tm_mday = day;
+  stop_tm.tm_hour = hour;
+  stop_tm.tm_min = minute;
+  stop_tm.tm_sec = second;
+  // strptime(input_args.stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
   mktime(&stop_tm);
 
   const char *pass_env_str = "ARCHIVER_PASS";

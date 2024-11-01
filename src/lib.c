@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define _XOPEN_SOURCE 700
 #include <assert.h>
 #include <ctype.h>
@@ -70,8 +71,13 @@ int get_single_attr_data(
     mktime(&stop);
   }
 
+  fprintf(stdout, "start month = %d\n", start.tm_mon);
+  fprintf(stdout, "stop month = %d\n", stop.tm_mon);
+
   strftime(start_str, sizeof(start_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &start);
   strftime(stop_str, sizeof(stop_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &stop);
+  fprintf(stdout, "start_str = %s\n", start_str);
+  fprintf(stdout, "stop_str = %s\n", stop_str);
 
   snprintf(query_str, sizeof(query_str)/sizeof(char), 
           "SELECT * FROM %s WHERE att_conf_id = %s AND "
@@ -105,7 +111,12 @@ int get_single_attr_data(
   for (size_t i=0; i<num_data_pts; i++) {
     struct tm time_struct = {0};
     char *time_str = PQgetvalue(res, i, 1);
-    time_str = strptime(time_str, "%Y-%m-%d %H:%M:%S", &time_struct);
+
+    // The following is used instead of strptime since that does not exist on Windows
+    int year, month, day, hour, minute, second;
+    sscanf(time_str, "%d-%d-%d %d:%d:%d",
+           &year, &month, &day, &hour, &minute, &second);
+    while (*time_str != '.') time_str++;
     int micros = 0;
     int factor = 100 * 1000;
     if (*time_str == '.') {
@@ -116,8 +127,13 @@ int get_single_attr_data(
         time_str++;
       }
     }
+    time_struct.tm_year = year - 1900;
+    time_struct.tm_mon = month - 1;
+    time_struct.tm_mday = day;
+    time_struct.tm_hour = hour;
+    time_struct.tm_min = minute;
+    time_struct.tm_sec = second;
 
-    // mktime(&time_struct);
     time_struct.tm_hour += 1;
     mktime(&time_struct);
 
