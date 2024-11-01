@@ -29,9 +29,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install Homebrew
       run: brew --install
-    - name: Install awscli and awsebcli
+    - name: Install postgres
       run: |
-          brew update
           brew install libpq5 libpq-dev
           brew upgrade
     - name: make
