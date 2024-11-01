@@ -24,7 +24,13 @@ typedef struct {
   double *data;
   size_t length;
   size_t capacity;
-} DynDoubleArray;
+} DynScalarArray;
+
+typedef struct {
+  DynScalarArray *data;
+  size_t length;
+  size_t capacity;
+} DynVectorArray;
 
 typedef struct {
   AccurateTime *data;
@@ -32,9 +38,18 @@ typedef struct {
   size_t capacity;
 } DynTimeArray;
 
+typedef enum {
+  DATATYPE_SCALAR,
+  DATATYPE_VECTOR,
+} DataType;
+
 typedef struct {
-  DynDoubleArray data_array;
+  DataType type;
   DynTimeArray time_array;
+  union {
+    DynScalarArray scalar_array;
+    DynVectorArray vector_array;
+  } as;
 } DataSet;
 
 typedef struct {

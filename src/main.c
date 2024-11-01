@@ -133,14 +133,36 @@ int main(int argc, char **argv) {
     DataSet ds = data_set_array.data[attr_num];
     fprintf(stream, "\"# DATASET= %s\"\n", attrs[attr_num].name);
     fprintf(stream, "\"# SNAPSHOT_TIME= \"\n");
-    for (size_t data_pt=0; data_pt < ds.data_array.length; data_pt++) {
+
+    size_t total_datapoints = ds.type==DATATYPE_SCALAR ? 
+      ds.as.scalar_array.length : ds.as.vector_array.length;
+    for (size_t data_pt=0; data_pt < total_datapoints; data_pt++) {
       DynTimeArray t = ds.time_array;
-      DynDoubleArray d = ds.data_array;
       char time_str[30];
       memset(time_str, 0, 30);
       strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[data_pt].time_struct);
       sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
-      fprintf(stream, "%s, %0.11f\n", time_str, d.data[data_pt]);
+
+      fprintf(stream, "%s, ", time_str);
+      switch (ds.type) {
+        case DATATYPE_SCALAR: {
+          DynScalarArray d = ds.as.scalar_array;
+          fprintf(stream, "%0.11f\n", d.data[data_pt]);
+        } break;
+        case DATATYPE_VECTOR: {
+          DynVectorArray d = ds.as.vector_array;
+          fprintf(stream, "[");
+          for (size_t subpt=0; subpt<d.data[data_pt].length; subpt++) {
+            if (subpt==0) {
+              fprintf(stream, "%.17g", d.data[data_pt].data[subpt]);
+            } else {
+              fprintf(stream, ", %.17g", d.data[data_pt].data[subpt]);
+            }
+          }
+          fprintf(stream, "]\n");
+        } break;
+      }
+
     }
     fprintf(stream, "\n");
 
@@ -150,8 +172,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  SDM_ARRAY_FREE(data_set_array.data[0].data_array);
-  SDM_ARRAY_FREE(data_set_array.data[0].time_array);
+  for (size_t i=0; i<data_set_array.length; i++) {
+    if (data_set_array.data[i].type == DATATYPE_SCALAR) {
+      SDM_ARRAY_FREE(data_set_array.data[i].as.scalar_array);
+    } else if (data_set_array.data[i].type == DATATYPE_VECTOR) {
+      SDM_ARRAY_FREE(data_set_array.data[i].as.vector_array);
+    }
+    SDM_ARRAY_FREE(data_set_array.data[i].time_array);
+  }
   SDM_ARRAY_FREE(data_set_array);
 
 defer:

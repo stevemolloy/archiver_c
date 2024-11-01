@@ -44,6 +44,11 @@ int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttr **a
   return num_hits;
 }
 
+static bool attr_is_scalar(ArchiverAttr attr) {
+  char *check_str = "att_scalar";
+  return strncmp(attr.table, check_str, strlen(check_str)) == 0;
+}
+
 int get_single_attr_data(
                   PGconn *conn, 
                   ArchiverAttr attr,
@@ -87,7 +92,14 @@ int get_single_attr_data(
     fprintf(stderr, "source file and recompile.\n");
     exit(1);
   }
-  SDM_ENSURE_ARRAY_MIN_CAP((dataset->data_array), num_data_pts);
+
+  if (attr_is_scalar(attr)) {
+    dataset->type = DATATYPE_SCALAR;
+    SDM_ENSURE_ARRAY_MIN_CAP((dataset->as.scalar_array), num_data_pts);
+  } else {
+    dataset->type = DATATYPE_VECTOR;
+    SDM_ENSURE_ARRAY_MIN_CAP((dataset->as.vector_array), num_data_pts);
+  }
   SDM_ENSURE_ARRAY_MIN_CAP((dataset->time_array), num_data_pts);
 
   for (size_t i=0; i<num_data_pts; i++) {
@@ -112,16 +124,32 @@ int get_single_attr_data(
     SDM_ARRAY_PUSH(dataset->time_array, ((AccurateTime){.time_struct=time_struct, .micros=micros}));
 
     char *db_val_str = PQgetvalue(res, i, 2);
-    if (strcmp(attr.table, "att_scalar_devboolean")==0) {
-      if (strcmp(db_val_str, "t")==0) {
-        SDM_ARRAY_PUSH(dataset->data_array, 1.0);
-      } else if (strcmp(db_val_str, "f")==0) {
-        SDM_ARRAY_PUSH(dataset->data_array, 0.0);
+    if (dataset->type == DATATYPE_SCALAR) {
+      if (strcmp(attr.table, "att_scalar_devboolean")==0) {
+        if (strcmp(db_val_str, "t")==0) {
+          SDM_ARRAY_PUSH(dataset->as.scalar_array, 1.0);
+        } else if (strcmp(db_val_str, "f")==0) {
+          SDM_ARRAY_PUSH(dataset->as.scalar_array, 0.0);
+        } else {
+          assert(0 && "unreachable code was reached");
+        }
       } else {
-        assert(0 && "unreachable code was reached");
+        SDM_ARRAY_PUSH(dataset->as.scalar_array, atof(db_val_str));
       }
-    } else {
-      SDM_ARRAY_PUSH(dataset->data_array, atof(db_val_str));
+    } else if (dataset->type == DATATYPE_VECTOR) {
+      SDM_ARRAY_PUSH((dataset->as.vector_array), (DynScalarArray){0});
+      size_t item_number = dataset->as.vector_array.length - 1;
+      if (*db_val_str == '{') db_val_str++;
+      while (*db_val_str != '}') {
+        double val = strtod(db_val_str, &db_val_str);
+        SDM_ARRAY_PUSH((dataset->as.vector_array.data[item_number]), val);
+        while (*db_val_str == ',') {
+          db_val_str++;
+        }
+      }
+      fprintf(stderr, "%s\n", db_val_str);
+      // fprintf(stderr, "\nWARNING: Vector acquisition is not implemented.\n\n");
+      // break;
     }
   }
 
