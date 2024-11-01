@@ -31,6 +31,7 @@ jobs:
       run: |
           brew update
           brew install libpq
+          brew install postgresql
           brew upgrade
     - name: make
       run: make
