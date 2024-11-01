@@ -7,7 +7,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "strptime.h"
 #include "libpq-fe.h"
 #include "sdm_lib.h"
 #include "lib.h"
