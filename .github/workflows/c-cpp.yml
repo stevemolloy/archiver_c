@@ -27,10 +27,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install Homebrew
-      run: brew --install
     - name: Install postgres
       run: |
+          brew update
           brew install libpq5 libpq-dev
           brew upgrade
     - name: make
