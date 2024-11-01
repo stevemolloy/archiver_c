@@ -15,5 +15,5 @@ $ ./bin/archiver --help
 ## Example call
 
 ```console
-$ ./bin/archiver --start 2024-09-27T14:00:00 --end 2024-09-27T14:00:10 .*r1.*dcct.*inst.*
+$ ./bin/archiver --start 2024-09-27T14:00:00 --end 2024-09-27T14:00:10 --file datafile .*r1.*dcct.*inst.*
 ```
