@@ -1,6 +1,7 @@
 CC=clang
 CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb
-CLIBS = -lpq
+CINCLUDES = -I`pg_config --includedir`
+CLIBS = -L`pg_config --libdir` -lpq
 
 SRC = src
 OBJ = objs
