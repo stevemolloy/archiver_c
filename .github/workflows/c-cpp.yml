@@ -30,7 +30,7 @@ jobs:
     - name: Install postgres
       run: |
           brew update
-          brew install libpq libpq-dev
+          brew install libpq
           brew upgrade
     - name: make
       run: make
