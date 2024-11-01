@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb
-CINCLUDES = -I`pg_config --includedir`
+CINCLUDES = -I`pg_config --includedir` -I./thirdparty/strptime/
 CLIBS = -L`pg_config --libdir` -lpq
 
 SRC = src

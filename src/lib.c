@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "strptime.h"
 #include "lib.h"
 #include "sdm_lib.h"
 
