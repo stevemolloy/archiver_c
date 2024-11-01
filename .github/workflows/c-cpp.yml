@@ -7,13 +7,18 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  build_linux:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Install deps
       run: sudo apt-get install libpq5 && sudo apt-get install libpq-dev
+    - name: make
+      run: make
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
     - name: make
       run: make
