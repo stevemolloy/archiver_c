@@ -14,6 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install deps
-      run: sudo apt-get install libpq5 libpq-dev
+      run: sudo apt-get install libpq5 && sudo apt-get install libpq-dev && pg_config
     - name: make
       run: make
