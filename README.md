@@ -37,10 +37,15 @@ Execute that command until you get a message similar to, `Nothing else to do`.
 In the MYSYS2 environment, execute the following to install the dependencies:
 
 ```console
-pacman -S git
 pacman -S make
 pacman -S mingw-w64-x86_64-gcc
 pacman -S mingw-w64-x86_64-postgresql
+```
+
+If you want to be able to do git-related things from MSYS2, you should also install git.
+
+```console
+pacman -S git
 ```
 
 Add the following lines to the `~/.bashrc` file.
