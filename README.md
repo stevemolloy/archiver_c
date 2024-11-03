@@ -32,7 +32,7 @@ If your installation of MSYS2 is completely fresh, then you will need to do the 
 pacman -Syyu
 ```
 
-Execute that command until you get a message similar to, `Nothing else to do`.
+Execute that command repeatedly until you get a message similar to, `Nothing else to do`.
 
 In the MYSYS2 environment, execute the following to install the dependencies:
 
