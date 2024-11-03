@@ -1,7 +1,8 @@
-CC=gcc
+PG_INCLUDES := $(shell pg_config --includedir)
+PG_LIBS := $(shell pg_config --libdir)
 CFLAGS = -O0 -Wall -Wpedantic -Wextra -std=c18 -ggdb
-CINCLUDES = -I`pg_config --includedir`
-CLIBS = -L`pg_config --libdir` -lpq
+CINCLUDES = -I$(PG_INCLUDES)
+CLIBS = -L$(PG_LIBS) -lpq
 
 SRC = src
 OBJ = objs
