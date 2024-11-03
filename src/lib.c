@@ -55,9 +55,9 @@ int get_single_attr_data(
                   ArchiverAttr attr,
                   DataSet *dataset,
                   struct tm start, struct tm stop) {
-  char query_str[512];
-  char start_str[32];
-  char stop_str[32];
+  char query_str[2048];
+  char start_str[256];
+  char stop_str[256];
   memset(query_str, 0, sizeof(query_str)/sizeof(char));
   memset(start_str, 0, sizeof(start_str)/sizeof(char));
   memset(stop_str, 0, sizeof(stop_str)/sizeof(char));
@@ -71,15 +71,23 @@ int get_single_attr_data(
     mktime(&stop);
   }
 
-  fprintf(stdout, "start month = %d\n", start.tm_mon);
-  fprintf(stdout, "stop month = %d\n", stop.tm_mon);
+  sprintf(start_str, "%02d-%02d-%02d %02d:%02d:%02d +0100",
+           start.tm_year+1900,
+           start.tm_mon+1,
+           start.tm_mday,
+           start.tm_hour,
+           start.tm_min,
+           start.tm_sec);
 
-  strftime(start_str, sizeof(start_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &start);
-  strftime(stop_str, sizeof(stop_str)/sizeof(char), "%Y-%m-%d %H:%M:%S %z", &stop);
-  fprintf(stdout, "start_str = %s\n", start_str);
-  fprintf(stdout, "stop_str = %s\n", stop_str);
+  sprintf(stop_str, "%02d-%02d-%02d %02d:%02d:%02d +0100",
+           stop.tm_year+1900,
+           stop.tm_mon+1,
+           stop.tm_mday,
+           stop.tm_hour,
+           stop.tm_min,
+           stop.tm_sec);
 
-  snprintf(query_str, sizeof(query_str)/sizeof(char), 
+  sprintf(query_str,
           "SELECT * FROM %s WHERE att_conf_id = %s AND "
           "data_time BETWEEN '%s' AND '%s' " "ORDER BY data_time",
           attr.table, attr.id, start_str, stop_str);
