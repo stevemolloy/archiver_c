@@ -64,11 +64,11 @@ int get_single_attr_data(
 
   if (start.tm_isdst == 1) {
     start.tm_hour -= 1;
-    mktime(&start);
+    // mktime(&start);
   }
   if (stop.tm_isdst == 1) {
     stop.tm_hour -= 1;
-    mktime(&stop);
+    // mktime(&stop);
   }
 
   sprintf(start_str, "%02d-%02d-%02d %02d:%02d:%02d +0100",
@@ -143,7 +143,7 @@ int get_single_attr_data(
     time_struct.tm_sec = second;
 
     time_struct.tm_hour += 1;
-    mktime(&time_struct);
+    if (time_struct.tm_hour > 23) mktime(&time_struct);
 
     SDM_ARRAY_PUSH(dataset->time_array, ((AccurateTime){.time_struct=time_struct, .micros=micros}));
 

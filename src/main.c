@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   start_tm.tm_min = minute;
   start_tm.tm_sec = second;
   // strptime(input_args.start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
-  mktime(&start_tm);
+  // mktime(&start_tm);
   sscanf(input_args.stop_str, "%d-%d-%dT%d:%d:%d",
          &year, &month, &day, &hour, &minute, &second);
   stop_tm.tm_year = year - 1900;
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   stop_tm.tm_min = minute;
   stop_tm.tm_sec = second;
   // strptime(input_args.stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
-  mktime(&stop_tm);
+  // mktime(&stop_tm);
 
   const char *pass_env_str = "ARCHIVER_PASS";
 
@@ -156,9 +156,17 @@ int main(int argc, char **argv) {
       ds.as.scalar_array.length : ds.as.vector_array.length;
     for (size_t data_pt=0; data_pt < total_datapoints; data_pt++) {
       DynTimeArray t = ds.time_array;
-      char time_str[30];
-      memset(time_str, 0, 30);
-      strftime(time_str, 30, "%Y-%m-%d_%H:%M:%S.", &t.data[data_pt].time_struct);
+      char time_str[128];
+      memset(time_str, 0, sizeof(time_str)/sizeof(char));
+      sprintf(time_str, "%02d-%02d-%02d_%02d:%02d:%02d.%06d",
+              t.data[data_pt].time_struct.tm_year+1900,
+              t.data[data_pt].time_struct.tm_mon+1,
+              t.data[data_pt].time_struct.tm_mday,
+              t.data[data_pt].time_struct.tm_hour,
+              t.data[data_pt].time_struct.tm_min,
+              t.data[data_pt].time_struct.tm_sec,
+              t.data[data_pt].micros);
+
       sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
 
       fprintf(stream, "%s, ", time_str);
