@@ -11,8 +11,9 @@
 #include "sdm_lib.h"
 #include "lib.h"
 
-void usage(char *program_name) {
-  fprintf(stderr, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f <filename>] <signal>\n", program_name);
+void usage(FILE *sink, char *program_name) {
+  fprintf(sink, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f <filename>] <attribute>\n", program_name);
+  fprintf(sink, "\t<start_time> and <end_time> should be given in the format: %%Y-%%m-%%dT%%H:%%M:%%S\n");
   return;
 }
 
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
     char *arg_str = SDM_shift_args(&argc, &argv);
 
     if (strcmp(arg_str, "--help") == 0) {
-      usage(program_name);
+      usage(stdout, program_name);
       defered_return(0);
     } else if ((strcmp(arg_str, "--start") == 0) || (strcmp(arg_str, "-s") == 0)) {
       input_args.start_str = SDM_shift_args(&argc, &argv);
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
 
   if (!check_input_args(input_args)) {
     fprintf(stderr, "Incorrect input arguments\n");
-    usage(program_name);
+    usage(stderr, program_name);
     defered_return(1);
   }
 
