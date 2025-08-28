@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 700
 
 #include <assert.h>
 #include <errno.h>
@@ -7,7 +6,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "libpq-fe.h"
 #include "sdm_lib.h"
 #include "lib.h"
 
