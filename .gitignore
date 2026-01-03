@@ -3,3 +3,5 @@ objs
 test*csv
 .cache*
 compile_commands.json
+build
+test
