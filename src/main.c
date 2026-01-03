@@ -93,17 +93,21 @@ int main(int argc, char **argv) {
   // mktime(&stop_tm);
 
   const char *pass_env_str = "ARCHIVER_PASS";
-
   const char *db_type = "postgresql://hdb_viewer";
   const char *db_pass = getenv(pass_env_str);
   const char *db_url  = "timescaledb.maxiv.lu.se";
   const char *db_port = "15432";
   const char *db_name = "hdb_machine";
 
-  size_t conn_str_size = strlen(db_type) + strlen(db_pass) + strlen(db_url) + 
-                         strlen(db_port) + strlen(db_name) + 5;
+  size_t conn_str_size = 0;
+  conn_str_size += strlen(db_type);
+  conn_str_size += strlen(db_pass);
+  conn_str_size += strlen(db_url);
+  conn_str_size += strlen(db_port);
+  conn_str_size += strlen(db_name);
+  conn_str_size += 5;
 
-  conn_str = malloc(conn_str_size * sizeof(char*));
+  conn_str = malloc(conn_str_size * sizeof(char));
   memset(conn_str, 0, conn_str_size);
 
   snprintf(conn_str, conn_str_size, "%s:%s@%s:%s/%s", 
