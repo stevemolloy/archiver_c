@@ -1,3 +1,4 @@
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime as dt
 from matplotlib import pyplot as plt
 import numpy as np
@@ -5,7 +6,7 @@ import sys
 import time
 import warnings
 import numpy.typing as npt
-from typing import Tuple
+from typing import Tuple, List
 
 narray_f64 = npt.NDArray[np.float64]
 narray_dt = npt.NDArray[np.datetime64]
@@ -31,12 +32,18 @@ if __name__ == "__main__":
         raise Exception("No files provided to parse")
 
     start: float = time.time()
-    for argc in sys.argv[1:]:
-        print(time.time() - start)
-        line_title, values, times = parse_file(argc)
+
+    filenames: List[str] = sys.argv[1:]
+    with ProcessPoolExecutor() as executor:
+        results = list(executor.map(parse_file, filenames))
+    processing_time: float = time.time() - start
+    print(f"Time to process {len(results)} datasets = {processing_time:0.3f} seconds")
+
+    for line_title, values, times in results:
         plt.plot(times, values, label=line_title)
-    
-    print(time.time() - start)
+
+    total_time: float = time.time() - start - processing_time
+    print(f"Time to plot {len(results)} x {len(times)} points = {total_time:0.3f} seconds")
     plt.legend()
     plt.show()
 
