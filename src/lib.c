@@ -55,6 +55,7 @@ int get_single_attr_data(
                   ArchiverAttr attr,
                   DataSet *dataset,
                   struct tm start, struct tm stop) {
+  printf("get_single_attr_data called for %s\n", attr.name);
   char query_str[2048];
   char start_str[256];
   char stop_str[256];
