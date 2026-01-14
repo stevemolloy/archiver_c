@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
               t.data[data_pt].time_struct.tm_sec,
               t.data[data_pt].micros);
 
-      sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
+      // sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
 
       fprintf(stream, "%s, ", time_str);
       switch (ds.type) {
