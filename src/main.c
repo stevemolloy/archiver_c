@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "ERROR: Could not allocate memory.\n");
         defered_return(1);
       }
-      sprintf(filename, "%s-%04zu.csv", input_args.filename_arg, attr_num+1);
+      sprintf(filename, "%s%04zu.dat", input_args.filename_arg, attr_num+1);
       stream = fopen(filename, "w");
       if (stream == NULL) {
         fprintf(stderr, "ERROR: Could not open %s: %s\n", filename, strerror(errno));
@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
 
       // sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
 
-      fprintf(stream, "%s, ", time_str);
+      fprintf(stream, "%s ", time_str);
       switch (ds.type) {
         case DATATYPE_SCALAR: {
           DynScalarArray d = ds.as.scalar_array;
