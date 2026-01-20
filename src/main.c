@@ -16,16 +16,25 @@ void usage(FILE *sink, char *program_name) {
 }
 
 typedef struct {
+    char **data;
+    size_t capacity;
+    size_t length;
+} SearchStrs;
+
+typedef struct {
   char *start_str;
   char *stop_str;
-  char *search_str;
+  SearchStrs search_strs;
   bool save_to_file;
   char *filename_arg;
   bool verbose;
 } InputArgs;
 
 void print_input_args(const InputArgs* args) {
-    printf("Searching for attribute: \"%s\"\n", args->search_str);
+    printf("Searching for attribute:\n");
+    for (size_t i=0; i<args->search_strs.length; i++) {
+        printf("\t\"%s\"\n", args->search_strs.data[i]);
+    }
     printf("Start date/time: \"%s\"\n", args->start_str);
     printf("Stop date/time: \"%s\"\n", args->stop_str);
     if (args->save_to_file) {
@@ -41,14 +50,14 @@ void print_input_args(const InputArgs* args) {
 bool check_input_args(InputArgs inargs) {
   if (inargs.start_str==NULL) return false;
   if (inargs.stop_str==NULL) return false;
-  if (inargs.search_str==NULL) return false;
+  if (inargs.search_strs.length==0) return false;
   if (inargs.save_to_file && (inargs.filename_arg==NULL)) return false;
   return true;
 }
 
 int main(int argc, char **argv) {
   int result = 0;
-  ArchiverAttr *attrs = NULL;
+  ArchiverAttrs attrs = {0};
   PGconn *conn = NULL;
   char *conn_str = NULL;
   PGresult *res = NULL;
@@ -75,7 +84,7 @@ int main(int argc, char **argv) {
     } else if ((strcmp(arg_str, "--verbose") == 0)) {
       input_args.verbose = true;
     } else {
-      input_args.search_str = arg_str;
+      SDM_ARRAY_PUSH(input_args.search_strs, arg_str);
     }
   }
 
@@ -150,15 +159,17 @@ int main(int argc, char **argv) {
     defered_return(1);
   }
 
-  attrs = NULL;
-  int num_matching_attrs = get_ids_and_tables(conn, input_args.search_str, &attrs);
+  int num_matching_attrs = 0;
+  for (size_t i=0; i<input_args.search_strs.length; i++) {
+    num_matching_attrs += get_ids_and_tables(conn, input_args.search_strs.data[i], &attrs);
+  }
   if (num_matching_attrs <= 0) {
-    fprintf(stderr, "ERROR: Search string not found in DB\n");
+    fprintf(stderr, "ERROR: Search string(s) not found in DB\n");
     defered_return(1);
   }
 
   if (input_args.verbose) {
-      printf("INFO: Found %d attribute(s) matching \"%s\"\n", num_matching_attrs, input_args.search_str);
+      printf("INFO: Found %d attribute(s) matching \n", num_matching_attrs);
   }
 
   PQclear(res);
@@ -167,9 +178,9 @@ int main(int argc, char **argv) {
   SDM_ENSURE_ARRAY_MIN_CAP(data_set_array, (size_t)num_matching_attrs);
   for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
     if (input_args.verbose) {
-        printf("INFO: Querying the database for %s\n", attrs[attr_num].name);
+        printf("INFO: Querying the database for %s\n", attrs.data[attr_num].name);
     }
-    get_single_attr_data(conn, attrs[attr_num], &data_set_array.data[attr_num], start_tm, stop_tm);
+    get_single_attr_data(conn, attrs.data[attr_num], &data_set_array.data[attr_num], start_tm, stop_tm);
   }
 
   for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
@@ -190,7 +201,7 @@ int main(int argc, char **argv) {
     }
 
     DataSet ds = data_set_array.data[attr_num];
-    fprintf(stream, "\"# DATASET= %s\"\n", attrs[attr_num].name);
+    fprintf(stream, "\"# DATASET= %s\"\n", attrs.data[attr_num].name);
     fprintf(stream, "\"# SNAPSHOT_TIME= \"\n");
 
     size_t total_datapoints = ds.type==DATATYPE_SCALAR ? 
@@ -252,7 +263,8 @@ int main(int argc, char **argv) {
 defer:
   if (conn_str) FREE(conn_str);
   if (conn)     PQfinish(conn);
-  if (attrs)    FREE(attrs);
+  // TODO: Memory leak here
+  // if (attrs)    FREE(attrs);
   if (filename) FREE(filename);
   return result;
 }

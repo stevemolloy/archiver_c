@@ -10,7 +10,7 @@
 
 #define MAX_QUERYSTR_LENGTH 256
 
-int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttr **attrs) {
+int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttrs *attrs) {
   char query_str[MAX_QUERYSTR_LENGTH];
   memset(query_str, 0, MAX_QUERYSTR_LENGTH);
   snprintf(query_str, MAX_QUERYSTR_LENGTH, 
@@ -31,13 +31,12 @@ int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttr **a
 
   int num_hits = PQntuples(res);
 
-  *attrs = malloc(num_hits * sizeof(ArchiverAttr));
-  memset(*attrs, 0, num_hits * sizeof(ArchiverAttr));
-
   for (int hit=0; hit<num_hits; hit++) {
-    strncpy((*attrs)[hit].id,    PQgetvalue(res, hit, 0), sizeof(attrs[hit]->id)/sizeof(char) - 1);
-    strncpy((*attrs)[hit].name,  PQgetvalue(res, hit, 1), sizeof(attrs[hit]->name)/sizeof(char) - 1);
-    strncpy((*attrs)[hit].table, PQgetvalue(res, hit, 2), sizeof(attrs[hit]->table)/sizeof(char) - 1);
+    ArchiverAttr attr = {0};
+    strncpy(attr.id,    PQgetvalue(res, hit, 0), ATTR_ID_LENGTH - 1);
+    strncpy(attr.name,  PQgetvalue(res, hit, 1), ATTR_NAME_LENGTH - 1);
+    strncpy(attr.table, PQgetvalue(res, hit, 2), ATTR_TABLE_LENGTH - 1);
+    SDM_ARRAY_PUSH((*attrs), attr);
   }
 
   PQclear(res);

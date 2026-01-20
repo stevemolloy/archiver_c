@@ -7,13 +7,22 @@
 
 #include "libpq-fe.h"
 
+#define ATTR_ID_LENGTH 32
+#define ATTR_NAME_LENGTH 256
+#define ATTR_TABLE_LENGTH 64
 #define MAX_ARRAY_LENGTH (1024*1024*1024 / 8)
 
 typedef struct {
-  char id[32];
-  char name[256];
-  char table[64];
+  char id[ATTR_ID_LENGTH];
+  char name[ATTR_NAME_LENGTH];
+  char table[ATTR_TABLE_LENGTH];
 } ArchiverAttr;
+
+typedef struct {
+    size_t length;
+    size_t capacity;
+    ArchiverAttr *data;
+} ArchiverAttrs;
 
 typedef struct {
   struct tm time_struct;
@@ -58,7 +67,7 @@ typedef struct {
   size_t capacity;
 } DynDataSetArray;
 
-int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttr **attrs);
+int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttrs *attrs);
 int get_single_attr_data(PGconn *conn, ArchiverAttr attr, DataSet *dataset, struct tm start, struct tm stop);
 
 #endif // !_LIB_H
