@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #define _XOPEN_SOURCE 700
 #include <assert.h>
@@ -158,14 +159,22 @@ int get_single_attr_data(
           assert(0 && "unreachable code was reached");
         }
       } else {
-        SDM_ARRAY_PUSH(dataset->as.scalar_array, atof(db_val_str));
+        char *end_ptr;
+        double val = strtod(db_val_str, &end_ptr);
+        if (db_val_str == end_ptr)
+            val = NAN;
+        SDM_ARRAY_PUSH(dataset->as.scalar_array, val);
       }
     } else if (dataset->type == DATATYPE_VECTOR) {
       SDM_ARRAY_PUSH((dataset->as.vector_array), (DynScalarArray){0});
       size_t item_number = dataset->as.vector_array.length - 1;
       if (*db_val_str == '{') db_val_str++;
       while (*db_val_str != '}') {
-        double val = strtod(db_val_str, &db_val_str);
+        char *end_ptr;
+        double val = strtod(db_val_str, &end_ptr);
+        if (db_val_str == end_ptr)
+            val = NAN;
+        db_val_str = end_ptr;
         SDM_ARRAY_PUSH((dataset->as.vector_array.data[item_number]), val);
         while (*db_val_str == ',') {
           db_val_str++;
