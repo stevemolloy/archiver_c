@@ -242,7 +242,8 @@ int main(int argc, char **argv) {
       }
 
     }
-    fprintf(stream, "\n");
+    if (stream == stdout)
+        fprintf(stream, "\n");
 
     if (input_args.save_to_file) {
       fclose(stream);
