@@ -174,16 +174,14 @@ int main(int argc, char **argv) {
 
   PQclear(res);
 
-  DynDataSetArray data_set_array = {0};
-  SDM_ENSURE_ARRAY_MIN_CAP(data_set_array, (size_t)num_matching_attrs);
   for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
     if (input_args.verbose) {
         printf("INFO: Querying the database for %s\n", attrs.data[attr_num].name);
     }
-    get_single_attr_data(conn, attrs.data[attr_num], &data_set_array.data[attr_num], start_tm, stop_tm);
-  }
-
-  for (size_t attr_num=0; attr_num<(size_t)num_matching_attrs; attr_num++) {
+    
+    DataSet ds = {0};
+    get_single_attr_data(conn, attrs.data[attr_num], &ds, start_tm, stop_tm);
+    
     if (input_args.save_to_file) {
       filename = malloc((strlen(input_args.filename_arg) + 32) * sizeof(char));
       if (filename == NULL) {
@@ -200,7 +198,6 @@ int main(int argc, char **argv) {
       stream = stdout;
     }
 
-    DataSet ds = data_set_array.data[attr_num];
     fprintf(stream, "\"# DATASET= %s\"\n", attrs.data[attr_num].name);
     fprintf(stream, "\"# SNAPSHOT_TIME= \"\n");
 
@@ -218,8 +215,6 @@ int main(int argc, char **argv) {
               t.data[data_pt].time_struct.tm_min,
               t.data[data_pt].time_struct.tm_sec,
               t.data[data_pt].micros);
-
-      // sprintf(&(time_str[20]), "%d", t.data[data_pt].micros);
 
       fprintf(stream, "%s ", time_str);
       switch (ds.type) {
@@ -249,17 +244,15 @@ int main(int argc, char **argv) {
       fclose(stream);
       FREE(filename);
     }
-  }
 
-  for (size_t i=0; i<data_set_array.length; i++) {
-    if (data_set_array.data[i].type == DATATYPE_SCALAR) {
-      SDM_ARRAY_FREE(data_set_array.data[i].as.scalar_array);
-    } else if (data_set_array.data[i].type == DATATYPE_VECTOR) {
-      SDM_ARRAY_FREE(data_set_array.data[i].as.vector_array);
+    // Free memory for this dataset immediately after output
+    if (ds.type == DATATYPE_SCALAR) {
+      SDM_ARRAY_FREE(ds.as.scalar_array);
+    } else if (ds.type == DATATYPE_VECTOR) {
+      SDM_ARRAY_FREE(ds.as.vector_array);
     }
-    SDM_ARRAY_FREE(data_set_array.data[i].time_array);
+    SDM_ARRAY_FREE(ds.time_array);
   }
-  SDM_ARRAY_FREE(data_set_array);
 
 defer:
   if (conn_str) FREE(conn_str);
