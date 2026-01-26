@@ -111,8 +111,9 @@ int main(int argc, char **argv) {
   start_tm.tm_hour = hour;
   start_tm.tm_min = minute;
   start_tm.tm_sec = second;
-  // strptime(input_args.start_str, "%Y-%m-%dT%H:%M:%S", &start_tm);
-  // mktime(&start_tm);
+  start_tm.tm_isdst = -1; // Let mktime determine DST
+  mktime(&start_tm); // Normalize the time structure
+  
   sscanf(input_args.stop_str, "%d-%d-%dT%d:%d:%d",
          &year, &month, &day, &hour, &minute, &second);
   stop_tm.tm_year = year - 1900;
@@ -121,8 +122,8 @@ int main(int argc, char **argv) {
   stop_tm.tm_hour = hour;
   stop_tm.tm_min = minute;
   stop_tm.tm_sec = second;
-  // strptime(input_args.stop_str, "%Y-%m-%dT%H:%M:%S", &stop_tm);
-  // mktime(&stop_tm);
+  stop_tm.tm_isdst = -1; // Let mktime determine DST
+  mktime(&stop_tm); // Normalize the time structure
 
   const char *pass_env_str = "ARCHIVER_PASS";
   const char *db_type = "postgresql://hdb_viewer";
