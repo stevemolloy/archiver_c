@@ -43,3 +43,14 @@ target_include_directories(archiver PRIVATE ${PG_INCLUDES})
 
 # Link libraries
 target_link_libraries(archiver PRIVATE ${PQLIB})
+
+# if(CMAKE_BUILD_TYPE MATCHES "Debug")
+#   set(
+#     CMAKE_C_FLAGS
+#     "${CMAKE_C_FLAGS} -fsanitize=undefined -fsanitize=address"
+#   )
+#   target_link_options(archiver
+#     BEFORE PUBLIC -fsanitize=undefined PUBLIC -fsanitize=address
+#   )
+# endif()
+
