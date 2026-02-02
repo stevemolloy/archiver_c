@@ -23,11 +23,11 @@
   } while (0)
 
 #define SDM_ENSURE_ARRAY_MIN_CAP(da, cap) do {                    \
-    if ((da).capacity < cap) {                                    \
-      (da).capacity = cap;                                        \
+    size_t __cap = cap;                                           \
+    if ((da).capacity < __cap) {                                  \
+      (da).capacity = __cap;                                      \
       (da).data = realloc((da).data,                              \
           (da).capacity * sizeof((da).data[0]));                  \
-      memset((da).data, 0, (da).capacity * sizeof((da).data[0])); \
       if ((da).data == NULL) {                                    \
         fprintf(stderr, "ERR: Couldn't alloc memory. \n");        \
         exit(1);                                                  \
@@ -58,13 +58,13 @@
       }                                                           \
     }                                                             \
     (da).data[(da).length++] = item;                              \
-  } while (0);
+  } while (0)
 
 #define SDM_ARRAY_FREE(da) do {                                \
     FREE((da).data);                                           \
     (da).length = 0;                                           \
     (da).capacity = 0;                                         \
-  } while (0);
+  } while (0)
 
 #define SDM_ARRAY_RESET(da) do { (da).length = 0; } while (0)
 
