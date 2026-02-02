@@ -69,6 +69,7 @@ typedef struct {
 
 int get_ids_and_tables(PGconn *conn, const char *search_string, ArchiverAttrs *attrs);
 int get_single_attr_data(PGconn *conn, ArchiverAttr attr, DataSet *dataset, struct tm start, struct tm stop);
+void write_dataset_to_stream(FILE *stream, DataSet ds);
 
 #endif // !_LIB_H
 

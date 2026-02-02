@@ -273,3 +273,44 @@ int get_single_attr_data(
   return num_data_pts;
 }
 
+void write_dataset_to_stream(FILE *stream, DataSet ds) {
+    size_t total_datapoints = ds.type==DATATYPE_SCALAR ? 
+      ds.as.scalar_array.length : ds.as.vector_array.length;
+    for (size_t data_pt=0; data_pt < total_datapoints; data_pt++) {
+      DynTimeArray t = ds.time_array;
+      char time_str[128];
+      memset(time_str, 0, sizeof(time_str)/sizeof(char));
+      sprintf(time_str, "%02d-%02d-%02d_%02d:%02d:%02d.%06d",
+              t.data[data_pt].time_struct.tm_year+1900,
+              t.data[data_pt].time_struct.tm_mon+1,
+              t.data[data_pt].time_struct.tm_mday,
+              t.data[data_pt].time_struct.tm_hour,
+              t.data[data_pt].time_struct.tm_min,
+              t.data[data_pt].time_struct.tm_sec,
+              t.data[data_pt].micros);
+
+      fprintf(stream, "%s ", time_str);
+      switch (ds.type) {
+        case DATATYPE_SCALAR: {
+          DynScalarArray d = ds.as.scalar_array;
+          fprintf(stream, "%0.11f\n", d.data[data_pt]);
+        } break;
+        case DATATYPE_VECTOR: {
+          DynVectorArray d = ds.as.vector_array;
+          fprintf(stream, "[");
+          for (size_t subpt=0; subpt<d.data[data_pt].length; subpt++) {
+            if (subpt==0) {
+              fprintf(stream, "%.17g", d.data[data_pt].data[subpt]);
+            } else {
+              fprintf(stream, ", %.17g", d.data[data_pt].data[subpt]);
+            }
+          }
+          fprintf(stream, "]\n");
+        } break;
+      }
+    }
+
+    if (stream == stdout)
+        fprintf(stream, "\n");
+}
+
