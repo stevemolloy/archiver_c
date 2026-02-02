@@ -17,7 +17,7 @@ def parse_file(filename: str) -> Tuple[str, narray_f64, narray_dt]:
         line_title: str = header.split("tango://g-v-csdb-0.maxiv.lu.se:10000/")[1][:-2]
         next(f)
     
-        data: npt.NDArray[np.str_] = np.loadtxt(f, delimiter=",", dtype=str, ndmin=2)
+        data: npt.NDArray[np.str_] = np.loadtxt(f, delimiter=" ", dtype=str, ndmin=2)
     
         times_str: npt.NDArray[np.str_] = np.char.replace(data[:, 0], "_", "T")
         times: narray_dt = times_str.astype("datetime64[ns]")
