@@ -10,8 +10,9 @@
 #include "lib.h"
 
 void usage(FILE *sink, char *program_name) {
-  fprintf(sink, "%s --start/-s <start_time> --end/-e <end_time> [--file/-f <filename>] <attribute>\n", program_name);
-  fprintf(sink, "\t<start_time> and <end_time> should be given in the format: %%Y-%%m-%%dT%%H:%%M:%%S\n");
+  fprintf(sink, "%s --start/-s <start> --end/-e <end> [--file/-f <fname>] <attr> [--decimate <factor>]\n", 
+          program_name);
+  fprintf(sink, "\t<start> and <end> should be given in the format: %%Y-%%m-%%dT%%H:%%M:%%S\n");
   return;
 }
 
@@ -28,6 +29,8 @@ typedef struct {
   bool save_to_file;
   char *filename_arg;
   bool verbose;
+  bool decimate;
+  int decimate_factor;
 } InputArgs;
 
 void print_input_args(const InputArgs* args) {
@@ -52,6 +55,7 @@ bool check_input_args(InputArgs inargs) {
   if (inargs.stop_str==NULL) return false;
   if (inargs.search_strs.length==0) return false;
   if (inargs.save_to_file && (inargs.filename_arg==NULL)) return false;
+  if (inargs.decimate && (inargs.decimate_factor <= 0)) return false;
   return true;
 }
 
@@ -83,6 +87,9 @@ int main(int argc, char **argv) {
       input_args.filename_arg = SDM_shift_args(&argc, &argv);
     } else if ((strcmp(arg_str, "--verbose") == 0)) {
       input_args.verbose = true;
+    } else if ((strcmp(arg_str, "--decimate") == 0)) {
+      input_args.decimate = true;
+      input_args.decimate_factor = atoi(SDM_shift_args(&argc, &argv));
     } else {
       SDM_ARRAY_PUSH(input_args.search_strs, arg_str);
     }
@@ -181,7 +188,37 @@ int main(int argc, char **argv) {
     }
     
     DataSet ds = {0};
-    get_single_attr_data(conn, attrs.data[attr_num], &ds, start_tm, stop_tm);
+    DataSet full_ds = {0};
+    get_single_attr_data(conn, attrs.data[attr_num], &full_ds, start_tm, stop_tm);
+
+    if (!input_args.decimate) ds = full_ds;
+    else {
+        int dec_numpts = 2 * full_ds.time_array.length / input_args.decimate_factor;
+        if (full_ds.time_array.length % input_args.decimate_factor > 0) dec_numpts += 1;
+        SDM_ENSURE_ARRAY_MIN_CAP(ds.time_array, (size_t)dec_numpts);
+        if (full_ds.type == DATATYPE_SCALAR)
+            SDM_ENSURE_ARRAY_MIN_CAP(ds.as.scalar_array, (size_t)dec_numpts);
+        else if (full_ds.type == DATATYPE_VECTOR)
+            SDM_ENSURE_ARRAY_MIN_CAP(ds.as.vector_array, (size_t)dec_numpts);
+        else {
+            fprintf(stderr, "ERROR: Corrupted memory?");
+            defered_return(1);
+        }
+        for (size_t index=0; index<full_ds.time_array.length; index += input_args.decimate_factor) {
+            SDM_ARRAY_PUSH(ds.time_array, full_ds.time_array.data[index]);
+            if (full_ds.type == DATATYPE_SCALAR)
+                SDM_ARRAY_PUSH(ds.as.scalar_array, (full_ds.as.scalar_array.data[index]));
+            else if (full_ds.type == DATATYPE_VECTOR)
+                SDM_ARRAY_PUSH(ds.as.vector_array, full_ds.as.vector_array.data[index]);
+            else {
+                fprintf(stderr, "ERROR: Corrupted memory?");
+                defered_return(1);
+            }
+        }
+        if (full_ds.type == DATATYPE_SCALAR)      SDM_ARRAY_FREE(full_ds.as.scalar_array);
+        else if (full_ds.type == DATATYPE_VECTOR) SDM_ARRAY_FREE(full_ds.as.vector_array);
+        SDM_ARRAY_FREE(full_ds.time_array);
+    }
     
     if (input_args.save_to_file) {
       filename = malloc((strlen(input_args.filename_arg) + 32) * sizeof(char));
@@ -210,11 +247,8 @@ int main(int argc, char **argv) {
     }
 
     // Free memory for this dataset immediately after output
-    if (ds.type == DATATYPE_SCALAR) {
-      SDM_ARRAY_FREE(ds.as.scalar_array);
-    } else if (ds.type == DATATYPE_VECTOR) {
-      SDM_ARRAY_FREE(ds.as.vector_array);
-    }
+    if (ds.type == DATATYPE_SCALAR)      SDM_ARRAY_FREE(ds.as.scalar_array);
+    else if (ds.type == DATATYPE_VECTOR) SDM_ARRAY_FREE(ds.as.vector_array);
     SDM_ARRAY_FREE(ds.time_array);
   }
 
