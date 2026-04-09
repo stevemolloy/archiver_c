@@ -33,6 +33,48 @@ typedef struct {
   int decimate_factor;
 } InputArgs;
 
+void print_tm(const struct tm *t) {
+    if (!t) {
+        printf("(null)\n");
+        return;
+    }
+
+    static const char *days[]   = {
+        "Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday"};
+    static const char *months[] = {
+        "January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"};
+
+    printf("Date: %s, %s %d, %d\n",
+           (t->tm_wday >= 0 && t->tm_wday <= 6) ? days[t->tm_wday]     : "?",
+           (t->tm_mon  >= 0 && t->tm_mon  <= 11) ? months[t->tm_mon]   : "?",
+           t->tm_mday,
+           t->tm_year + 1900);
+
+    printf("Time: %02d:%02d:%02d\n",
+           t->tm_hour, t->tm_min, t->tm_sec);
+
+    if (t->tm_isdst > 0)       printf("DST:  active\n");
+    else if (t->tm_isdst == 0) printf("DST:  inactive\n");
+    else                       printf("DST:  unknown\n");
+}
+
 void print_input_args(const InputArgs* args) {
     printf("Searching for attribute:\n");
     for (size_t i=0; i<args->search_strs.length; i++) {
@@ -120,6 +162,12 @@ int main(int argc, char **argv) {
   start_tm.tm_sec = second;
   start_tm.tm_isdst = -1; // Let mktime determine DST
   mktime(&start_tm); // Normalize the time structure
+  if (input_args.verbose) {
+      printf("------------------INFO----------------------\n");
+      printf("Timestamp for start point\n");
+      print_tm(&start_tm);
+      printf("------------------INFO----------------------\n");
+  }
   
   sscanf(input_args.stop_str, "%d-%d-%dT%d:%d:%d",
          &year, &month, &day, &hour, &minute, &second);
@@ -131,6 +179,12 @@ int main(int argc, char **argv) {
   stop_tm.tm_sec = second;
   stop_tm.tm_isdst = -1; // Let mktime determine DST
   mktime(&stop_tm); // Normalize the time structure
+  if (input_args.verbose) {
+      printf("------------------INFO----------------------\n");
+      printf("Timestamp for end point\n");
+      print_tm(&stop_tm);
+      printf("------------------INFO----------------------\n");
+  }
 
   const char *pass_env_str = "ARCHIVER_PASS";
   const char *db_type = "postgresql://hdb_viewer";

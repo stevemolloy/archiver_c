@@ -57,7 +57,7 @@ int get_single_attr_data(
                   ArchiverAttr attr,
                   DataSet *dataset,
                   struct tm start, struct tm stop) {
-  printf("get_single_attr_data called for %s\n", attr.name);
+  printf("INFO: Getting data for %s\n", attr.name);
   char query_str[2048];
   char start_str[256];
   char stop_str[256];
@@ -78,6 +78,7 @@ int get_single_attr_data(
            start.tm_min,
            start.tm_sec,
            timezone_str);
+  printf("INFO: Starting timestamp: %s\n", start_str);
 
   timezone_str = stop.tm_isdst > 0 ? "CEST" : "CET";
   sprintf(stop_str, "%02d-%02d-%02d %02d:%02d:%02d %s",
@@ -88,11 +89,13 @@ int get_single_attr_data(
            stop.tm_min,
            stop.tm_sec,
            timezone_str);
+  printf("INFO: Ending timestamp: %s\n", stop_str);
 
   sprintf(query_str,
           "SELECT * FROM %s WHERE att_conf_id = %s AND "
           "data_time BETWEEN '%s' AND '%s' " "ORDER BY data_time",
           attr.table, attr.id, start_str, stop_str);
+  printf("INFO: DB query string:\n\t%s\n", query_str);
   PGresult *res = PQexec(conn, query_str);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "%s", PQerrorMessage(conn));
