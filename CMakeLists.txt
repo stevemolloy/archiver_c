@@ -9,6 +9,9 @@ set(CMAKE_BUILD_TYPE Release)
 
 # Compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+if(NOT WIN32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
+endif()
 
 # Find pg_config
 find_program(PG_CONFIG pg_config)
