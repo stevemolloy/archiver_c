@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +16,15 @@ char *SDM_read_entire_file(const char *file_path) {
   }
 
   fseek(f, 0L, SEEK_END);
-  int sz = ftell(f);
+  long sz = ftell(f);
+  if (sz < 0) {
+      fprintf(stderr, "ERROR: Could not determine size of file: \"%s\"", file_path);
+      exit(1);
+  }
+  if (sz == LONG_MAX) {
+      fprintf(stderr, "ERROR: Size of file \"%s\" found to be %ld bytes!", file_path, LONG_MAX);
+      exit(1);
+  }
   fseek(f, 0L, SEEK_SET);
 
   char *contents = calloc(sz + 1, sizeof(char));
@@ -53,8 +62,11 @@ SDM_StringView SDM_sv_pop_by_delim(SDM_StringView *SV, const char delim) {
     SV->length--;
     ret.length++;
   }
-  SV->data++;
-  SV->length--;
+
+  if (*SV->data == delim && SV->length>0) {
+    SV->data++;
+    SV->length--;
+  }
 
   return ret;
 }
@@ -67,7 +79,7 @@ void SDM_sv_trim(SDM_StringView *SV) {
 }
 
 char *SDM_shift_args(int *argc, char ***argv) {
-  if (*argc < 0) return NULL;
+  if (*argc <= 0) return NULL;
   (*argc)--;
   char **ret = *argv;
   (*argv)++;
