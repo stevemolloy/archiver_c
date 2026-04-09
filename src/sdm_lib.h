@@ -15,7 +15,6 @@
     (da).capacity = cap;                                        \
     (da).data = realloc((da).data,                              \
         (da).capacity * sizeof((da).data[0]));                  \
-    memset((da).data, 0, (da).capacity * sizeof((da).data[0])); \
     if ((da).data == NULL) {                                    \
       fprintf(stderr, "ERR: Couldn't alloc memory.\n");         \
       exit(1);                                                  \
@@ -51,7 +50,6 @@
       (da).capacity *= 2;                                         \
       (da).data = realloc((da).data,                              \
            (da).capacity * sizeof((da).data[0]));                 \
-      memset((da).data + (da).length, 0, ((da).capacity - (da).length) * sizeof((da).data[0])); \
       if ((da).data == NULL) {                                    \
         fprintf(stderr, "ERR: Couldn't alloc memory.\n");         \
         exit(1);                                                  \
